@@ -3,6 +3,8 @@ export const colors = {
     primaryLight: '#E3F1E3',
     primarySoft: '#E8F3E8',
 
+    secondary: '#c2dbc3',
+
     background: '#F5F7F5',
     card: '#FFFFFF',
 
@@ -30,5 +32,6 @@ export const radius = {
     md: 14,
     lg: 18,
     xl: 24,
+    xxl: 34,
     round: 999,
 }

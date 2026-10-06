@@ -95,7 +95,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+
+    backgroundColor: colors.secondary,
+
     marginTop: spacing.xxl,
+    padding: spacing.md,
+    borderRadius: radius.xxl,
+
+    elevation: 4,
+    shadowColor: colors.subtle,
+
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
   },
 
   logo: {

@@ -23,13 +23,15 @@ const styles = StyleSheet.create({
         borderRadius: radius.lg,
         padding: spacing.lg,
 
-        elevation: 4,
+        elevation: 4, //android ig
 
+        // for ios
         shadowColor: colors.primary,
         shadowOffset: {
             width: 0,
             height: 3,
         },
+
         shadowOpacity: 0.08,
         shadowRadius: 8,
     },
