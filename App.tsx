@@ -5,7 +5,12 @@ import {
   Text,
   View
 } from "react-native";
-import { colors } from "./src/styles/globals";
+
+import {
+  colors,
+  spacing,
+  radius,
+} from './src/styles/globals';
 
 export default function App() {
   return (
@@ -35,14 +40,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    padding: 20,
+    padding: spacing.lg,
   },
 
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: '40',
+    marginTop: spacing.xxl,
   },
 
   logo: {
@@ -65,7 +70,7 @@ const styles = StyleSheet.create({
   },
 
   menuButton: {
-    padding: 8,
+    padding: spacing.sm,
   },
 
   menuText: {
@@ -74,7 +79,7 @@ const styles = StyleSheet.create({
   },
 
   greeting: {
-    marginTop: 40,
+    marginTop: spacing.xxl,
   },
 
   subtitle: {
