@@ -19,8 +19,11 @@ export default function TaskCard() {
 
 const styles = StyleSheet.create({
     card: {
+        width: '75%',
+        aspectRatio: 1,
+
         backgroundColor: colors.card,
-        borderRadius: radius.lg,
+        borderRadius: radius.xl,
         padding: spacing.lg,
 
         elevation: 4, //android ig

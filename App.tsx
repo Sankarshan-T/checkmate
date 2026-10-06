@@ -202,6 +202,8 @@ const styles = StyleSheet.create({
   },
 
   taskCardContainer: {
-    marginTop: spacing.xl,
+    marginVertical: spacing.xxl,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 })
