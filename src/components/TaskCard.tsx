@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, radius, spacing } from "../styles/globals";
 
 export default function TaskCard() {
@@ -6,9 +6,13 @@ export default function TaskCard() {
         <View style={styles.card}>
             <Text style={styles.heading}>Today:</Text>
 
-            <Text style={styles.placeholder}>
-                Your tasks will appear here :)
-            </Text>
+            <Pressable style={styles.task}>
+                <View style={styles.checkbox} />
+
+                <Text style={styles.taskText}>
+                    Water plants
+                </Text>
+            </Pressable>
         </View>
     )
 }
@@ -41,5 +45,26 @@ const styles = StyleSheet.create({
         marginTop: spacing.md,
         fontSize: 16,
         color: colors.muted,
+    },
+
+    task: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: spacing.lg,
+        paddingVertical: spacing.sm,
+    },
+
+    checkbox: {
+        width: 24,
+        height: 24,
+        borderRadius: radius.sm,
+        borderWidth: 2,
+        borderColor: colors.subtle,
+        marginRight: spacing.md,
+    },
+
+    taskText: {
+        fontSize: 16,
+        color: colors.text,
     },
 });
