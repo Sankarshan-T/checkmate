@@ -19,9 +19,9 @@ const styles = StyleSheet.create({
         borderRadius: radius.lg,
         padding: spacing.lg,
 
-        elevation: 3,
+        elevation: 4,
 
-        shadowColor: '#000',
+        shadowColor: colors.primary,
         shadowOffset: {
             width: 0,
             height: 3,
