@@ -1,4 +1,11 @@
-import { Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
+import {
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View
+} from "react-native";
+import { colors } from "./src/styles/globals";
 
 export default function App() {
   return (
@@ -13,6 +20,11 @@ export default function App() {
       </View>
 
       <View style={styles.greeting}>
+        <Text style={styles.date}>Tuesday, October 6th :)</Text>
+
+        <Text style={styles.title}>good day!!</Text>
+
+
         <Text style={styles.subtitle}>lets get things done :D</Text>
       </View>
     </View>
@@ -22,7 +34,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7F5',
+    backgroundColor: colors.background,
     padding: 20,
   },
 
@@ -36,7 +48,20 @@ const styles = StyleSheet.create({
   logo: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#2E7D32',
+    color: colors.primary,
+  },
+
+  date: {
+    fontSize: 14,
+    color: colors.muted,
+    marginBottom: 8,
+  },
+
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1B1B1B',
+    marginBottom: 4,
   },
 
   menuButton: {
