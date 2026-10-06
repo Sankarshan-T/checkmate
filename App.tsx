@@ -18,6 +18,30 @@ import React from 'react';
 
 
 export default function App() {
+  const now = new Date();
+  const hour = now.getHours();
+
+  let greeting = '';
+
+  const options = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  } as const;
+
+  const date = now.toLocaleDateString('en-US', options);
+
+
+  if (hour >= 5 && hour < 12) {
+    greeting = 'good morning! :D';
+  } else if (hour >= 12 && hour < 18) {
+    greeting = 'good afternoon!';
+  } else if (hour >= 18 && hour < 22) {
+    greeting = 'good evening :)';
+  } else {
+    greeting = 'good night zzz....';
+  }
+
   const fadeAnim = React.useRef(
     new Animated.Value(0)
   ).current;
@@ -68,12 +92,12 @@ export default function App() {
           },
         ]}
       >
-        <Text style={styles.date}>Tuesday, October 6th :)</Text>
+        <View>
+          <Text style={styles.title}>{greeting}</Text>
+          <Text style={styles.subtitle}>lets get things done :D</Text>
+        </View>
+        <Text style={styles.date}>{date} :D</Text>
 
-        <Text style={styles.title}>good day!!</Text>
-
-
-        <Text style={styles.subtitle}>lets get things done :D</Text>
       </Animated.View>
 
       <View style={styles.taskCardContainer}>
@@ -121,7 +145,7 @@ const styles = StyleSheet.create({
   },
 
   date: {
-    fontSize: 14,
+    fontSize: 22,
     color: colors.muted,
     marginBottom: 8,
   },
@@ -144,6 +168,10 @@ const styles = StyleSheet.create({
 
   greeting: {
     marginTop: spacing.xxl,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
   },
 
   subtitle: {
