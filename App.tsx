@@ -1,10 +1,11 @@
 import {
+  Animated,
   Pressable,
   StatusBar,
   StyleSheet,
   Text,
-  View
-} from "react-native";
+  View,
+} from 'react-native';
 
 import {
   colors,
@@ -12,10 +13,40 @@ import {
   radius,
 } from './src/styles/globals';
 
+import TaskCard from './src/components/TaskCard';
+import React from 'react';
+
+
 export default function App() {
+  const fadeAnim = React.useRef(
+    new Animated.Value(0)
+  ).current;
+
+  const slideAnim = React.useRef(
+    new Animated.Value(20)
+  ).current;
+
+  React.useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 700,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 700,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
+
+      <View style={styles.decorativeCircleOne} />
+      <View style={styles.decorativeCircleTwo} />
 
       <View style={styles.header}>
         <Text style={styles.logo}>checkmate</Text>
@@ -24,15 +55,32 @@ export default function App() {
         </Pressable>
       </View>
 
-      <View style={styles.greeting}>
+      <Animated.View
+        style={[
+          styles.greeting,
+          {
+            opacity: fadeAnim,
+            transform: [
+              {
+                translateY: slideAnim,
+              },
+            ],
+          },
+        ]}
+      >
         <Text style={styles.date}>Tuesday, October 6th :)</Text>
 
         <Text style={styles.title}>good day!!</Text>
 
 
         <Text style={styles.subtitle}>lets get things done :D</Text>
+      </Animated.View>
+
+      <View style={styles.taskCardContainer}>
+        <TaskCard />
       </View>
-    </View>
+
+    </View >
   );
 }
 
@@ -84,6 +132,32 @@ const styles = StyleSheet.create({
 
   subtitle: {
     fontSize: 18,
-    color: '#6B756B',
+    color: colors.subtle,
+  },
+
+  decorativeCircleOne: {
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: colors.primaryLight,
+    right: -100,
+    top: 100,
+    opacity: 0.45,
+  },
+
+  decorativeCircleTwo: {
+    position: 'absolute',
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: colors.primarySoft,
+    left: -70,
+    bottom: 180,
+    opacity: 0.50,
+  },
+
+  taskCardContainer: {
+    marginTop: spacing.xl,
   },
 })
