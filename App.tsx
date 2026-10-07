@@ -104,6 +104,16 @@ export default function App() {
         <TaskCard />
       </View>
 
+      <Pressable
+        style={({ pressed }) => [
+          styles.addButton,
+          pressed && styles.addButtonPressed,
+        ]}
+        onPress={() => { }}
+      >
+        <Text style={styles.addButtonText}>+</Text>
+      </Pressable>
+
     </View >
   );
 }
@@ -112,7 +122,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
   },
 
   header: {
@@ -123,8 +134,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.secondary,
 
     marginTop: spacing.xxl,
-    padding: spacing.md,
-    borderRadius: radius.xxl,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+
+    borderRadius: radius.xl,
 
     elevation: 4,
     shadowColor: colors.subtle,
@@ -139,71 +152,134 @@ const styles = StyleSheet.create({
   },
 
   logo: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: '700',
     color: colors.primary,
   },
 
-  date: {
-    fontSize: 22,
-    color: colors.muted,
-    marginBottom: 8,
+  menuButton: {
+    width: 44,
+    height: 44,
+
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    borderRadius: radius.md,
+  },
+
+  menuText: {
+    fontSize: 24,
+    color: colors.text,
+  },
+
+  greeting: {
+    marginTop: spacing.xl,
+
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+
+    paddingHorizontal: spacing.md,
+
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 800,
   },
 
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#1B1B1B',
+    color: colors.text,
     marginBottom: 4,
   },
 
-  menuButton: {
-    padding: spacing.sm,
-  },
-
-  menuText: {
-    fontSize: 24,
-    color: '#1B1B1B',
-  },
-
-  greeting: {
-    marginTop: spacing.xxl,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-
   subtitle: {
-    fontSize: 18,
+    fontSize: 17,
     color: colors.subtle,
+  },
+
+  date: {
+    fontSize: 16,
+    color: colors.muted,
+    marginBottom: 4,
+    textAlign: 'right',
   },
 
   decorativeCircleOne: {
     position: 'absolute',
+
     width: 220,
     height: 220,
     borderRadius: 110,
+
     backgroundColor: colors.primaryLight,
+
     right: -100,
     top: 100,
+
     opacity: 0.45,
   },
 
   decorativeCircleTwo: {
     position: 'absolute',
+
     width: 140,
     height: 140,
     borderRadius: 70,
+
     backgroundColor: colors.primarySoft,
+
     left: -70,
     bottom: 180,
-    opacity: 0.50,
+
+    opacity: 0.5,
   },
 
   taskCardContainer: {
-    marginVertical: spacing.xxl,
+    flex: 1,
+
+    marginTop: spacing.xl,
+
+    alignItems: 'center',
+  },
+
+  addButton: {
+    position: 'absolute',
+
+    right: 20,
+    bottom: 24,
+
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+
+    backgroundColor: colors.primary,
+
     alignItems: 'center',
     justifyContent: 'center',
+
+    elevation: 5,
+
+    shadowColor: colors.primary,
+
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
   },
-})
+
+  addButtonText: {
+    fontSize: 32,
+    fontWeight: '300',
+    color: colors.card,
+    lineHeight: 34,
+  },
+
+  addButtonPressed: {
+    opacity: 0.8,
+    transform: [{ scale: 0.9 }],
+  },
+});

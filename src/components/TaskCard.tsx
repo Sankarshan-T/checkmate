@@ -6,27 +6,51 @@ export default function TaskCard() {
         <View style={styles.card}>
             <Text style={styles.heading}>Today:</Text>
 
-            <Pressable style={styles.task}>
-                <View style={styles.checkbox} />
+            <View style={styles.taskCont}>
+                <Pressable style={styles.task}>
+                    <View style={styles.checkbox} />
 
-                <Text style={styles.taskText}>
-                    Water plants
-                </Text>
-            </Pressable>
+                    <Text style={styles.taskText}>
+                        Water plants
+                    </Text>
+                </Pressable>
+            </View>
+
+            <View style={styles.buttonCont}>
+                <Pressable
+                    style={({ pressed }) => [
+                        styles.newTask,
+                        pressed && styles.buttonPressed,
+                    ]}
+                    onPress={() => { }}
+                >
+                    <Text style={styles.newTaskText}>Reports</Text>
+                </Pressable>
+                <Pressable
+                    style={({ pressed }) => [
+                        styles.newTask,
+                        pressed && styles.buttonPressed,
+                    ]}
+                    onPress={() => { }}
+                >
+                    <Text style={styles.newTaskText}>New task</Text>
+                </Pressable>
+            </View>
         </View>
     )
 }
 
 const styles = StyleSheet.create({
     card: {
-        width: '75%',
-        aspectRatio: 1,
+        width: '92%',
+        maxWidth: 500,
+        minHeight: 300,
 
         backgroundColor: colors.card,
-        borderRadius: radius.xl,
+        borderRadius: radius.xxl,
         padding: spacing.lg,
 
-        elevation: 4, //android ig
+        elevation: 6, //android ig
 
         // for ios
         shadowColor: colors.primary,
@@ -40,7 +64,7 @@ const styles = StyleSheet.create({
     },
 
     heading: {
-        fontSize: 13,
+        fontSize: 23,
         fontWeight: '700',
         letterSpacing: 1.5,
         color: colors.muted,
@@ -72,4 +96,38 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: colors.text,
     },
+
+    newTask: {
+        width: '50%',
+        marginTop: spacing.lg,
+        paddingVertical: spacing.md,
+
+        backgroundColor: colors.primaryLight,
+        borderRadius: radius.md,
+
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    newTaskText: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: colors.primary,
+    },
+
+    buttonPressed: {
+        opacity: 0.7,
+        transform: [{ scale: 0.97 }],
+    },
+
+    buttonCont: {
+        flexDirection: 'row',
+        gap: 10,
+        padding: spacing.sm,
+    },
+
+    taskCont: {
+        flexDirection: 'column',
+        flex: 1,
+    }
 });
