@@ -1,7 +1,13 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, radius, spacing } from "../styles/globals";
 
-export default function TaskCard() {
+type TaskCardProps = {
+    onRequestAddTask: () => void;
+};
+
+export default function TaskCard({
+    onRequestAddTask,
+}: TaskCardProps) {
     return (
         <View style={styles.card}>
             <Text style={styles.heading}>Today:</Text>
@@ -31,7 +37,7 @@ export default function TaskCard() {
                         styles.newTask,
                         pressed && styles.buttonPressed,
                     ]}
-                    onPress={() => { }}
+                    onPress={onRequestAddTask}
                 >
                     <Text style={styles.newTaskText}>New task</Text>
                 </Pressable>

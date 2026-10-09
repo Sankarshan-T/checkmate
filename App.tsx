@@ -14,6 +14,7 @@ import {
 } from './src/styles/globals';
 
 import TaskCard from './src/components/TaskCard';
+import AddTaskModal from './src/components/AddTaskModal';
 import React from 'react';
 
 
@@ -30,6 +31,36 @@ export default function App() {
   } as const;
 
   const date = now.toLocaleDateString('en-US', options);
+
+  type Task = {
+    id: string;
+    title: string;
+    completed: boolean;
+  };
+
+  const [tasks, setTasks] = React.useState<Task[]>([
+    {
+      id: '1',
+      title: 'Water plants',
+      completed: false,
+    },
+  ]);
+
+  const [addTaskVisible, setAddTaskVisible] =
+    React.useState(false);
+
+  const addTask = (title: string) => {
+    setTasks(currentTasks => [
+      ...currentTasks,
+      {
+        id: Date.now().toString(),
+        title,
+        completed: false,
+      },
+    ]);
+
+    setAddTaskVisible(false);
+  };
 
 
   if (hour >= 5 && hour < 12) {
@@ -101,7 +132,9 @@ export default function App() {
       </Animated.View>
 
       <View style={styles.taskCardContainer}>
-        <TaskCard />
+        <TaskCard
+          onRequestAddTask={() => setAddTaskVisible(true)}
+        />
       </View>
 
       <Pressable
@@ -109,11 +142,16 @@ export default function App() {
           styles.addButton,
           pressed && styles.addButtonPressed,
         ]}
-        onPress={() => { }}
+        onPress={() => setAddTaskVisible(true)}
       >
         <Text style={styles.addButtonText}>+</Text>
       </Pressable>
 
+      <AddTaskModal
+        visible={addTaskVisible}
+        onClose={() => setAddTaskVisible(false)}
+        onAddTask={addTask}
+      />
     </View >
   );
 }
