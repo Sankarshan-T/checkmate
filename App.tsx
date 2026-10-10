@@ -1,3 +1,6 @@
+
+import React, { useEffect } from 'react';
+
 import {
   Animated,
   Pressable,
@@ -15,8 +18,12 @@ import {
 
 import TaskCard from './src/components/TaskCard';
 import AddTaskModal from './src/components/AddTaskModal';
-import React from 'react';
 
+import {
+  loadTasks,
+  saveTasks,
+  type Task,
+} from './src/storage/taskStorage';
 
 export default function App() {
   const now = new Date();
@@ -32,36 +39,96 @@ export default function App() {
 
   const date = now.toLocaleDateString('en-US', options);
 
-  type Task = {
-    id: string;
-    title: string;
-    completed: boolean;
-  };
-
-  const [tasks, setTasks] = React.useState<Task[]>([
-    {
-      id: '1',
-      title: 'Water plants',
-      completed: false,
-    },
-  ]);
+  const [tasks, setTasks] = React.useState<Task[]>([]);
+  const [tasksLoaded, setTasksLoaded] = React.useState(false);
+  const [storageError, setStorageError] = React.useState(false);
 
   const [addTaskVisible, setAddTaskVisible] =
     React.useState(false);
 
-  const addTask = (title: string) => {
-    setTasks(currentTasks => [
-      ...currentTasks,
-      {
-        id: Date.now().toString(),
-        title,
-        completed: false,
-      },
-    ]);
+  // load the saved tasks once when the app starts
+  useEffect(() => {
+    let isActive = true;
 
+    async function initializeTasks() {
+      try {
+        const savedTasks = await loadTasks();
+
+        if (isActive) {
+          setTasks(savedTasks);
+          setStorageError(false);
+        }
+      } catch (error) {
+        console.error('Could not load saved tasks:', error);
+
+        if (isActive) {
+          setStorageError(true);
+        }
+      } finally {
+        if (isActive) {
+          setTasksLoaded(true);
+        }
+      }
+    }
+
+    initializeTasks();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  // save whenever the task list changes, but doesnt overwrite saved data before loading has finished 
+  useEffect(() => {
+    if (!tasksLoaded || storageError) {
+      return;
+    }
+
+    saveTasks(tasks).catch(error => {
+      console.error('Could not save tasks:', error);
+      setStorageError(true);
+    });
+  }, [tasks, tasksLoaded, storageError]);
+
+  const addTask = (title: string) => {
+    const newTask: Task = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      title,
+      completed: false,
+      completionHistory: [],
+    };
+
+    setTasks(currentTasks => [...currentTasks, newTask]);
     setAddTaskVisible(false);
   };
 
+  const deleteTask = (id: string) => {
+    setTasks(currentTasks =>
+      currentTasks.filter(task => task.id !== id),
+    );
+  };
+
+  const toggleTask = (id: string) => {
+    const today = new Date().toISOString().slice(0, 10);
+
+    setTasks(currentTasks =>
+      currentTasks.map(task => {
+        if (task.id !== id) {
+          return task;
+        }
+
+        const completing = !task.completed;
+
+        return {
+          ...task,
+          completed: completing,
+          completionHistory: completing
+            ? [...task.completionHistory, today]
+            : task.completionHistory,
+        };
+      }),
+    );
+  };
 
   if (hour >= 5 && hour < 12) {
     greeting = 'good morning! :D';
@@ -74,11 +141,11 @@ export default function App() {
   }
 
   const fadeAnim = React.useRef(
-    new Animated.Value(0)
+    new Animated.Value(0),
   ).current;
 
   const slideAnim = React.useRef(
-    new Animated.Value(20)
+    new Animated.Value(20),
   ).current;
 
   React.useEffect(() => {
@@ -94,7 +161,7 @@ export default function App() {
         useNativeDriver: true,
       }),
     ]).start();
-  }, []);
+  }, [fadeAnim, slideAnim]);
 
   return (
     <View style={styles.container}>
@@ -105,7 +172,12 @@ export default function App() {
 
       <View style={styles.header}>
         <Text style={styles.logo}>checkmate</Text>
-        <Pressable style={styles.menuButton}>
+
+        <Pressable
+          style={styles.menuButton}
+          accessibilityRole="button"
+          accessibilityLabel="Open menu"
+        >
           <Text style={styles.menuText}>=</Text>
         </Pressable>
       </View>
@@ -115,26 +187,38 @@ export default function App() {
           styles.greeting,
           {
             opacity: fadeAnim,
-            transform: [
-              {
-                translateY: slideAnim,
-              },
-            ],
+            transform: [{ translateY: slideAnim }],
           },
         ]}
       >
         <View>
           <Text style={styles.title}>{greeting}</Text>
-          <Text style={styles.subtitle}>lets get things done :D</Text>
+          <Text style={styles.subtitle}>
+            lets get things done :D
+          </Text>
         </View>
-        <Text style={styles.date}>{date} :D</Text>
 
+        <Text style={styles.date}>{date} :D</Text>
       </Animated.View>
 
+      {storageError && (
+        <Text style={styles.storageWarning}>
+          Couldn't access saved tasks. Your changes may not be saved.
+          Restart the app or check device storage before editing tasks.
+        </Text>
+      )}
+
       <View style={styles.taskCardContainer}>
-        <TaskCard
-          onRequestAddTask={() => setAddTaskVisible(true)}
-        />
+        {tasksLoaded ? (
+          <TaskCard
+            tasks={tasks}
+            onRequestAddTask={() => setAddTaskVisible(true)}
+            onToggleTask={toggleTask}
+            onDeleteTask={deleteTask}
+          />
+        ) : (
+          <Text style={styles.loadingText}>Loading your tasks...</Text>
+        )}
       </View>
 
       <Pressable
@@ -143,6 +227,8 @@ export default function App() {
           pressed && styles.addButtonPressed,
         ]}
         onPress={() => setAddTaskVisible(true)}
+        accessibilityRole="button"
+        accessibilityLabel="Add task"
       >
         <Text style={styles.addButtonText}>+</Text>
       </Pressable>
@@ -152,7 +238,7 @@ export default function App() {
         onClose={() => setAddTaskVisible(false)}
         onAddTask={addTask}
       />
-    </View >
+    </View>
   );
 }
 
@@ -168,23 +254,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-
     backgroundColor: colors.secondary,
-
     marginTop: spacing.xxl,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-
     borderRadius: radius.xl,
-
     elevation: 4,
     shadowColor: colors.subtle,
-
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
   },
@@ -198,10 +275,8 @@ const styles = StyleSheet.create({
   menuButton: {
     width: 44,
     height: 44,
-
     alignItems: 'center',
     justifyContent: 'center',
-
     borderRadius: radius.md,
   },
 
@@ -212,13 +287,10 @@ const styles = StyleSheet.create({
 
   greeting: {
     marginTop: spacing.xl,
-
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-
     paddingHorizontal: spacing.md,
-
     alignSelf: 'center',
     width: '100%',
     maxWidth: 800,
@@ -245,66 +317,57 @@ const styles = StyleSheet.create({
 
   decorativeCircleOne: {
     position: 'absolute',
-
     width: 220,
     height: 220,
     borderRadius: 110,
-
     backgroundColor: colors.primaryLight,
-
     right: -100,
     top: 100,
-
     opacity: 0.45,
   },
 
   decorativeCircleTwo: {
     position: 'absolute',
-
     width: 140,
     height: 140,
     borderRadius: 70,
-
     backgroundColor: colors.primarySoft,
-
     left: -70,
     bottom: 180,
-
     opacity: 0.5,
   },
 
   taskCardContainer: {
     flex: 1,
-
     marginTop: spacing.xl,
-
     alignItems: 'center',
+  },
+
+  loadingText: {
+    marginTop: spacing.xl,
+    color: colors.muted,
+    fontSize: 16,
+  },
+
+  storageWarning: {
+    marginTop: spacing.md,
+    color: '#B3261E',
+    fontSize: 13,
   },
 
   addButton: {
     position: 'absolute',
-
     right: 20,
     bottom: 24,
-
     width: 58,
     height: 58,
     borderRadius: 29,
-
     backgroundColor: colors.primary,
-
     alignItems: 'center',
     justifyContent: 'center',
-
     elevation: 5,
-
     shadowColor: colors.primary,
-
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
   },
