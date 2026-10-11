@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import {
     colors,
     radius,
@@ -7,21 +9,24 @@ import {
 import {
     Alert,
     Pressable,
+    ScrollView,
     StyleSheet,
     Text,
     View,
+    useWindowDimensions,
 } from 'react-native';
 
 import {
     Trash2,
     Plus,
-    ChartNoAxesColumn,
     Check,
     CalendarDays,
     ChevronDown,
+    Library,
 } from 'lucide-react-native';
 
-import type { Task } from '../storage/taskStorage';
+import type { GlobalTask, Task } from '../storage/taskStorage';
+import TaskLibraryModal from './TaskLibraryModal';
 
 type TaskCardProps = {
     tasks: Task[];
@@ -30,6 +35,11 @@ type TaskCardProps = {
     onDeleteTask: (id: string) => void;
     selectedDate: string;
     onOpenCalendar: () => void;
+    globalTasks: GlobalTask[];
+    assignedTaskIds: string[];
+    onAddGlobalTask: (title: string) => void;
+    onAssignGlobalTask: (taskId: string) => void;
+    onRemoveGlobalTask: (taskId: string) => void;
 };
 
 export default function TaskCard({
@@ -39,9 +49,17 @@ export default function TaskCard({
     onDeleteTask,
     selectedDate,
     onOpenCalendar,
+    globalTasks,
+    assignedTaskIds,
+    onAddGlobalTask,
+    onAssignGlobalTask,
+    onRemoveGlobalTask,
 }: TaskCardProps) {
+    const [libraryVisible, setLibraryVisible] = useState(false);
+    const { height: screenHeight } = useWindowDimensions();
+
     return (
-        <View style={styles.card}>
+        <View style={[styles.card, { maxHeight: screenHeight * 0.6 }]}>
             <Pressable
                 style={styles.dateHeading}
                 onPress={onOpenCalendar}
@@ -71,7 +89,11 @@ export default function TaskCard({
                 <ChevronDown size={20} color={colors.muted} />
             </Pressable>
 
-            <View style={styles.taskCont}>
+            <ScrollView
+                style={styles.taskCont}
+                contentContainerStyle={styles.taskContent}
+                showsVerticalScrollIndicator
+            >
                 {tasks.length === 0 ? (
                     <Text style={styles.placeholder}>
                         No tasks yet :D Add one now!!
@@ -140,31 +162,26 @@ export default function TaskCard({
 
                     ))
                 )}
-            </View>
+            </ScrollView>
 
             <View style={styles.buttonCont}>
                 <Pressable
                     style={({ pressed }) => [
-                        styles.newTask,
-                        pressed && styles.buttonPressed,
+                        styles.actionButton,
+                        styles.menuButton,
+                        pressed && styles.menuButtonPressed,
                     ]}
-                    onPress={() => {
-                        // todo: reports stuff
-                    }}
+                    onPress={() => setLibraryVisible(true)}
                     accessibilityRole="button"
+                    accessibilityLabel="Open task library"
                 >
-                    <ChartNoAxesColumn
-                        size={20}
-                        color={colors.primary}
-                        strokeWidth={3}
-                    />
-                    <Text style={styles.newTaskText}>
-                        Reports
-                    </Text>
+                    <Library size={20} color={colors.card} strokeWidth={2} />
+                    <Text style={styles.menuText}>Global Tasks</Text>
                 </Pressable>
 
                 <Pressable
                     style={({ pressed }) => [
+                        styles.actionButton,
                         styles.newTask,
                         pressed && styles.buttonPressed,
                     ]}
@@ -180,6 +197,17 @@ export default function TaskCard({
                     </Text>
                 </Pressable>
             </View>
+
+            <TaskLibraryModal
+                visible={libraryVisible}
+                tasks={globalTasks}
+                selectedDate={selectedDate}
+                assignedTaskIds={assignedTaskIds}
+                onClose={() => setLibraryVisible(false)}
+                onAddTask={onAddGlobalTask}
+                onAssignTask={onAssignGlobalTask}
+                onRemoveTask={onRemoveGlobalTask}
+            />
         </View>
     );
 }
@@ -189,6 +217,7 @@ const styles = StyleSheet.create({
         width: '92%',
         maxWidth: 500,
         minHeight: 300,
+        justifyContent: 'space-between',
         backgroundColor: colors.card,
         borderRadius: radius.xl,
         padding: spacing.lg,
@@ -258,8 +287,10 @@ const styles = StyleSheet.create({
 
     buttonCont: {
         flexDirection: 'row',
+        alignItems: 'stretch',
+        width: '100%',
         gap: spacing.sm,
-        padding: spacing.sm,
+        marginTop: spacing.md,
     },
 
     taskMain: {
@@ -285,15 +316,24 @@ const styles = StyleSheet.create({
     },
 
     newTask: {
-        flex: 1,
+        backgroundColor: colors.card,
+        borderWidth: 1,
+        borderColor: colors.primary,
+    },
+
+    actionButton: {
+        flexGrow: 1,
+        flexShrink: 1,
+        flexBasis: 0,
+        minWidth: 0,
+        minHeight: 48,
         flexDirection: 'row',
-        gap: 10,
+        gap: spacing.xs,
         justifyContent: 'center',
-        marginTop: spacing.lg,
-        paddingVertical: spacing.md,
-        backgroundColor: colors.primaryLight,
-        borderRadius: radius.md,
         alignItems: 'center',
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.sm,
+        borderRadius: radius.md,
     },
 
     newTaskText: {
@@ -308,9 +348,13 @@ const styles = StyleSheet.create({
     },
 
     taskCont: {
-        flexDirection: 'column',
-        flex: 1,
-        padding: spacing.md
+        flexGrow: 0,
+        flexShrink: 1,
+        minHeight: 0,
+    },
+
+    taskContent: {
+        padding: spacing.md,
     },
     dateHeading: {
         flexDirection: 'row',
@@ -318,5 +362,23 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-start',
         gap: spacing.sm,
         paddingVertical: spacing.xs,
+    },
+
+    menuButton: {
+        backgroundColor: colors.primary,
+        borderRadius: radius.md,
+        borderWidth: 1,
+        borderColor: colors.primary,
+    },
+
+    menuButtonPressed: {
+        backgroundColor: '#256829',
+        transform: [{ scale: 0.97 }],
+    },
+
+    menuText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: colors.card,
     },
 });

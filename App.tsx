@@ -32,7 +32,7 @@ import {
   type TaskStorageData,
   removeGlobalTaskPermanently,
 } from './src/storage/taskStorage';
-import { Library } from 'lucide-react-native';
+import { ChartNoAxesColumn } from 'lucide-react-native';
 
 export default function App() {
   const now = new Date();
@@ -358,17 +358,25 @@ export default function App() {
       <View style={styles.header}>
         <Text style={styles.logo}>checkmate</Text>
 
+
         <Pressable
           style={({ pressed }) => [
-            styles.menuButton,
-            pressed && styles.menuButtonPressed,
+            styles.reportsButton,
+            pressed && styles.reportsButtonPressed,
           ]}
-          onPress={() => setLibraryVisible(true)}
+          onPress={() => {
+            // todo: reports stuff
+          }}
           accessibilityRole="button"
-          accessibilityLabel="Open task library"
         >
-          <Library size={20} color={colors.primary} strokeWidth={2} />
-          <Text style={styles.menuText}>Global Tasks</Text>
+          <ChartNoAxesColumn
+            size={20}
+            color={colors.primary}
+            strokeWidth={3}
+          />
+          <Text style={styles.reportsText}>
+            Reports
+          </Text>
         </Pressable>
       </View>
 
@@ -407,6 +415,11 @@ export default function App() {
             onRequestAddTask={() => setAddTaskVisible(true)}
             onToggleTask={toggleTask}
             onDeleteTask={deleteTask}
+            globalTasks={storageData.globalTasks}
+            assignedTaskIds={assignedTaskIds}
+            onAddGlobalTask={addGlobalTask}
+            onAssignGlobalTask={assignGlobalTask}
+            onRemoveGlobalTask={handleRemoveGlobalTask}
           />
         ) : (
           <Text style={styles.loadingText}>
@@ -431,17 +444,6 @@ export default function App() {
         visible={addTaskVisible}
         onClose={() => setAddTaskVisible(false)}
         onAddTask={addDailyTask}
-      />
-
-      <TaskLibraryModal
-        visible={libraryVisible}
-        tasks={storageData.globalTasks}
-        selectedDate={selectedDate}
-        assignedTaskIds={assignedTaskIds}
-        onClose={() => setLibraryVisible(false)}
-        onAddTask={addGlobalTask}
-        onAssignTask={assignGlobalTask}
-        onRemoveTask={handleRemoveGlobalTask}
       />
 
       <CalendarModal
@@ -583,7 +585,9 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.9 }],
   },
 
-  menuButton: {
+
+
+  reportsButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -597,12 +601,12 @@ const styles = StyleSheet.create({
     borderColor: '#D3E7D3',
   },
 
-  menuButtonPressed: {
+  reportsButtonPressed: {
     backgroundColor: '#D2E8D2',
     transform: [{ scale: 0.97 }],
   },
 
-  menuText: {
+  reportsText: {
     fontSize: 14,
     fontWeight: '600',
     color: colors.primary,
