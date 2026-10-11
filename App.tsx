@@ -1,8 +1,7 @@
 
-import React, { useEffect } from 'react';
-import CalendarModal from './src/components/CalendarModal';
-
+import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   Animated,
   Pressable,
   StatusBar,
@@ -11,20 +10,29 @@ import {
   View,
 } from 'react-native';
 
+import CalendarModal from './src/components/CalendarModal';
+import TaskCard from './src/components/TaskCard';
+import AddTaskModal from './src/components/AddTaskModal';
+import TaskLibraryModal from './src/components/TaskLibraryModal';
+
 import {
   colors,
   spacing,
   radius,
 } from './src/styles/globals';
 
-import TaskCard from './src/components/TaskCard';
-import AddTaskModal from './src/components/AddTaskModal';
-
 import {
-  loadTasks,
-  saveTasks,
+  loadTaskStorage,
+  saveTaskStorage,
+  getLocalDateKey,
   type Task,
+  type GlobalTask,
+  type DailyTask,
+  type DailyTaskAssignment,
+  type TaskStorageData,
+  removeGlobalTaskPermanently,
 } from './src/storage/taskStorage';
+import { Library } from 'lucide-react-native';
 
 export default function App() {
   const now = new Date();
@@ -32,31 +40,49 @@ export default function App() {
 
   let greeting = '';
 
-  const options = {
+  if (hour >= 5 && hour < 12) {
+    greeting = 'good morning! :D';
+  } else if (hour >= 12 && hour < 18) {
+    greeting = 'good afternoon!';
+  } else if (hour >= 18 && hour < 22) {
+    greeting = 'good evening :)';
+  } else {
+    greeting = 'good night zzz....';
+  }
+
+  const date = now.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  } as const;
+  });
 
-  const date = now.toLocaleDateString('en-US', options);
+  const [storageData, setStorageData] =
+    useState<TaskStorageData>({
+      globalTasks: [],
+      dailyTasks: [],
+      assignments: [],
+    });
 
-  const [tasks, setTasks] = React.useState<Task[]>([]);
-  const [tasksLoaded, setTasksLoaded] = React.useState(false);
-  const [storageError, setStorageError] = React.useState(false);
+  const [tasksLoaded, setTasksLoaded] = useState(false);
+  const [storageError, setStorageError] = useState(false);
 
-  const [addTaskVisible, setAddTaskVisible] =
-    React.useState(false);
+  const [selectedDate, setSelectedDate] = useState(
+    () => getLocalDateKey(new Date()),
+  );
 
-  // load the saved tasks once when the app starts
+  const [addTaskVisible, setAddTaskVisible] = useState(false);
+  const [calendarVisible, setCalendarVisible] = useState(false);
+  const [libraryVisible, setLibraryVisible] = useState(false);
+
   useEffect(() => {
     let isActive = true;
 
     async function initializeTasks() {
       try {
-        const savedTasks = await loadTasks();
+        const savedData = await loadTaskStorage();
 
         if (isActive) {
-          setTasks(savedTasks);
+          setStorageData(savedData);
           setStorageError(false);
         }
       } catch (error) {
@@ -79,94 +105,203 @@ export default function App() {
     };
   }, []);
 
-  // save whenever the task list changes, but doesnt overwrite saved data before loading has finished 
   useEffect(() => {
     if (!tasksLoaded || storageError) {
       return;
     }
 
-    saveTasks(tasks).catch(error => {
+    saveTaskStorage(storageData).catch(error => {
       console.error('Could not save tasks:', error);
       setStorageError(true);
     });
-  }, [tasks, tasksLoaded, storageError]);
+  }, [storageData, tasksLoaded, storageError]);
 
-  const addTask = (title: string) => {
-    const newTask: Task = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      title,
+  const createId = () =>
+    `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+  const addDailyTask = (title: string) => {
+    const cleanTitle = title.trim();
+
+    if (!cleanTitle) {
+      return;
+    }
+
+    const newTask: DailyTask = {
+      id: createId(),
+      title: cleanTitle,
+      date: selectedDate,
       completed: false,
-      completionHistory: [],
     };
 
-    setTasks(currentTasks => [...currentTasks, newTask]);
+    setStorageData(current => ({
+      ...current,
+      dailyTasks: [...current.dailyTasks, newTask],
+    }));
+
     setAddTaskVisible(false);
   };
 
-  const getLocalDateKey = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+  const addGlobalTask = (title: string) => {
+    const cleanTitle = title.trim();
 
-    return `${year}-${month}-${day}`;
+    if (!cleanTitle) {
+      return;
+    }
+
+    const newTask: GlobalTask = {
+      id: createId(),
+      title: cleanTitle,
+      completionHistory: [],
+    };
+
+    setStorageData(current => ({
+      ...current,
+      globalTasks: [...current.globalTasks, newTask],
+    }));
   };
 
-  const [selectedDate, setSelectedDate] = React.useState(
-    () => getLocalDateKey(new Date()),
-  );
+  const assignGlobalTask = (taskId: string) => {
+    setStorageData(current => {
+      const alreadyAssigned = current.assignments.some(
+        assignment =>
+          assignment.taskId === taskId &&
+          assignment.date === selectedDate,
+      );
 
-  const [calendarVisible, setCalendarVisible] = React.useState(false);
+      if (alreadyAssigned) {
+        return current;
+      }
 
-  const deleteTask = (id: string) => {
-    setTasks(currentTasks =>
-      currentTasks.filter(task => task.id !== id),
-    );
+      const newAssignment: DailyTaskAssignment = {
+        taskId,
+        date: selectedDate,
+        completed: false,
+      };
+
+      return {
+        ...current,
+        assignments: [...current.assignments, newAssignment],
+      };
+    });
   };
 
-  const toggleTask = (id: string) => {
-    const today = getLocalDateKey(new Date());
+  const visibleTasks: Task[] = [
+    ...storageData.assignments
+      .filter(assignment => assignment.date === selectedDate)
+      .flatMap(assignment => {
+        const libraryTask = storageData.globalTasks.find(
+          task => task.id === assignment.taskId,
+        );
 
-    setTasks(currentTasks =>
-      currentTasks.map(task => {
-        if (task.id !== id) {
-          return task;
+        if (!libraryTask) {
+          return [];
         }
 
-        const alreadyCompleted =
-          task.completionHistory.includes(selectedDate) ||
-          (selectedDate === today && task.completed);
-
-        const completionHistory = alreadyCompleted
-          ? task.completionHistory.filter(
-            date => date !== selectedDate,
-          )
-          : [
-            ...new Set([
-              ...task.completionHistory,
-              selectedDate,
-            ]),
-          ];
-
-        return {
-          ...task,
-          completed: selectedDate === today
-            ? !alreadyCompleted
-            : task.completed,
-          completionHistory,
-        };
+        return [{
+          id: libraryTask.id,
+          title: libraryTask.title,
+          completed: assignment.completed,
+          completionHistory: libraryTask.completionHistory,
+        }];
       }),
-    );
+
+    ...storageData.dailyTasks
+      .filter(task => task.date === selectedDate)
+      .map(task => ({
+        id: task.id,
+        title: task.title,
+        completed: task.completed,
+        completionHistory: [],
+      })),
+  ];
+
+
+  const toggleTask = (id: string) => {
+    setStorageData(current => {
+      const dailyTask = current.dailyTasks.find(
+        task => task.id === id && task.date === selectedDate,
+      );
+
+      if (dailyTask) {
+        return {
+          ...current,
+          dailyTasks: current.dailyTasks.map(task =>
+            task.id === id && task.date === selectedDate
+              ? { ...task, completed: !task.completed }
+              : task,
+          ),
+        };
+      }
+
+      const assignment = current.assignments.find(
+        item =>
+          item.taskId === id &&
+          item.date === selectedDate,
+      );
+
+      if (!assignment) {
+        return current;
+      }
+
+      const nextCompleted = !assignment.completed;
+
+      return {
+        ...current,
+
+        assignments: current.assignments.map(item =>
+          item.taskId === id && item.date === selectedDate
+            ? { ...item, completed: nextCompleted }
+            : item,
+        ),
+
+        globalTasks: current.globalTasks.map(task => {
+          if (task.id !== id) {
+            return task;
+          }
+
+          const history = task.completionHistory.filter(
+            completedDate => completedDate !== selectedDate,
+          );
+
+          return {
+            ...task,
+            completionHistory: nextCompleted
+              ? [...history, selectedDate]
+              : history,
+          };
+        }),
+      };
+    });
   };
 
-  if (hour >= 5 && hour < 12) {
-    greeting = 'good morning! :D';
-  } else if (hour >= 12 && hour < 18) {
-    greeting = 'good afternoon!';
-  } else if (hour >= 18 && hour < 22) {
-    greeting = 'good evening :)';
-  } else {
-    greeting = 'good night zzz....';
-  }
+  const deleteTask = (id: string) => {
+    const isGlobalTask = storageData.globalTasks.some(
+      task => task.id === id,
+    );
+
+    if (isGlobalTask) {
+      setStorageData(current => ({
+        ...current,
+        assignments: current.assignments.filter(
+          assignment =>
+            !(
+              assignment.taskId === id &&
+              assignment.date === selectedDate
+            ),
+        ),
+      }));
+
+      return;
+    }
+
+    setStorageData(current => ({
+      ...current,
+      dailyTasks: current.dailyTasks.filter(
+        task =>
+          !(task.id === id && task.date === selectedDate),
+      ),
+    }));
+  };
 
   const fadeAnim = React.useRef(
     new Animated.Value(0),
@@ -176,7 +311,7 @@ export default function App() {
     new Animated.Value(20),
   ).current;
 
-  React.useEffect(() => {
+  useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -191,6 +326,28 @@ export default function App() {
     ]).start();
   }, [fadeAnim, slideAnim]);
 
+
+  const handleRemoveGlobalTask = async (taskId: string) => {
+    try {
+      await saveTaskStorage(storageData);
+
+      await removeGlobalTaskPermanently(taskId);
+
+      const updatedData = await loadTaskStorage();
+      setStorageData(updatedData);
+    } catch (error) {
+      Alert.alert(
+        'Could not remove task',
+        'Something went wrong while removing this task. Please try again.',
+      );
+    }
+  };
+
+
+  const assignedTaskIds = storageData.assignments
+    .filter(assignment => assignment.date === selectedDate)
+    .map(assignment => assignment.taskId);
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -202,11 +359,16 @@ export default function App() {
         <Text style={styles.logo}>checkmate</Text>
 
         <Pressable
-          style={styles.menuButton}
+          style={({ pressed }) => [
+            styles.menuButton,
+            pressed && styles.menuButtonPressed,
+          ]}
+          onPress={() => setLibraryVisible(true)}
           accessibilityRole="button"
-          accessibilityLabel="Open menu"
+          accessibilityLabel="Open task library"
         >
-          <Text style={styles.menuText}>=</Text>
+          <Library size={20} color={colors.primary} strokeWidth={2} />
+          <Text style={styles.menuText}>Global Tasks</Text>
         </Pressable>
       </View>
 
@@ -232,22 +394,14 @@ export default function App() {
       {storageError && (
         <Text style={styles.storageWarning}>
           Couldn't access saved tasks. Your changes may not be saved.
-          Restart the app or check device storage before editing tasks.
+          Please restart the app or check device storage.
         </Text>
       )}
 
       <View style={styles.taskCardContainer}>
         {tasksLoaded ? (
           <TaskCard
-            tasks={tasks.map(task => ({
-              ...task,
-              completed:
-                task.completionHistory.includes(selectedDate) ||
-                (
-                  selectedDate === getLocalDateKey(new Date()) &&
-                  task.completed
-                ),
-            }))}
+            tasks={visibleTasks}
             selectedDate={selectedDate}
             onOpenCalendar={() => setCalendarVisible(true)}
             onRequestAddTask={() => setAddTaskVisible(true)}
@@ -255,7 +409,9 @@ export default function App() {
             onDeleteTask={deleteTask}
           />
         ) : (
-          <Text style={styles.loadingText}>Loading your tasks...</Text>
+          <Text style={styles.loadingText}>
+            Loading your tasks...
+          </Text>
         )}
       </View>
 
@@ -266,7 +422,7 @@ export default function App() {
         ]}
         onPress={() => setAddTaskVisible(true)}
         accessibilityRole="button"
-        accessibilityLabel="Add task"
+        accessibilityLabel="Add a task for this date"
       >
         <Text style={styles.addButtonText}>+</Text>
       </Pressable>
@@ -274,7 +430,18 @@ export default function App() {
       <AddTaskModal
         visible={addTaskVisible}
         onClose={() => setAddTaskVisible(false)}
-        onAddTask={addTask}
+        onAddTask={addDailyTask}
+      />
+
+      <TaskLibraryModal
+        visible={libraryVisible}
+        tasks={storageData.globalTasks}
+        selectedDate={selectedDate}
+        assignedTaskIds={assignedTaskIds}
+        onClose={() => setLibraryVisible(false)}
+        onAddTask={addGlobalTask}
+        onAssignTask={assignGlobalTask}
+        onRemoveTask={handleRemoveGlobalTask}
       />
 
       <CalendarModal
@@ -315,19 +482,6 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: '700',
     color: colors.primary,
-  },
-
-  menuButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.md,
-  },
-
-  menuText: {
-    fontSize: 24,
-    color: colors.text,
   },
 
   greeting: {
@@ -427,5 +581,30 @@ const styles = StyleSheet.create({
   addButtonPressed: {
     opacity: 0.8,
     transform: [{ scale: 0.9 }],
+  },
+
+  menuButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'flex-start',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.primaryLight,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: '#D3E7D3',
+  },
+
+  menuButtonPressed: {
+    backgroundColor: '#D2E8D2',
+    transform: [{ scale: 0.97 }],
+  },
+
+  menuText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
   },
 });
