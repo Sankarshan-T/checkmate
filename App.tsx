@@ -1,5 +1,6 @@
 
 import React, { useEffect } from 'react';
+import CalendarModal from './src/components/CalendarModal';
 
 import {
   Animated,
@@ -102,6 +103,20 @@ export default function App() {
     setAddTaskVisible(false);
   };
 
+  const getLocalDateKey = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  };
+
+  const [selectedDate, setSelectedDate] = React.useState(
+    () => getLocalDateKey(new Date()),
+  );
+
+  const [calendarVisible, setCalendarVisible] = React.useState(false);
+
   const deleteTask = (id: string) => {
     setTasks(currentTasks =>
       currentTasks.filter(task => task.id !== id),
@@ -109,7 +124,7 @@ export default function App() {
   };
 
   const toggleTask = (id: string) => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getLocalDateKey(new Date());
 
     setTasks(currentTasks =>
       currentTasks.map(task => {
@@ -117,14 +132,27 @@ export default function App() {
           return task;
         }
 
-        const completing = !task.completed;
+        const alreadyCompleted =
+          task.completionHistory.includes(selectedDate) ||
+          (selectedDate === today && task.completed);
+
+        const completionHistory = alreadyCompleted
+          ? task.completionHistory.filter(
+            date => date !== selectedDate,
+          )
+          : [
+            ...new Set([
+              ...task.completionHistory,
+              selectedDate,
+            ]),
+          ];
 
         return {
           ...task,
-          completed: completing,
-          completionHistory: completing
-            ? [...task.completionHistory, today]
-            : task.completionHistory,
+          completed: selectedDate === today
+            ? !alreadyCompleted
+            : task.completed,
+          completionHistory,
         };
       }),
     );
@@ -211,7 +239,17 @@ export default function App() {
       <View style={styles.taskCardContainer}>
         {tasksLoaded ? (
           <TaskCard
-            tasks={tasks}
+            tasks={tasks.map(task => ({
+              ...task,
+              completed:
+                task.completionHistory.includes(selectedDate) ||
+                (
+                  selectedDate === getLocalDateKey(new Date()) &&
+                  task.completed
+                ),
+            }))}
+            selectedDate={selectedDate}
+            onOpenCalendar={() => setCalendarVisible(true)}
             onRequestAddTask={() => setAddTaskVisible(true)}
             onToggleTask={toggleTask}
             onDeleteTask={deleteTask}
@@ -237,6 +275,13 @@ export default function App() {
         visible={addTaskVisible}
         onClose={() => setAddTaskVisible(false)}
         onAddTask={addTask}
+      />
+
+      <CalendarModal
+        visible={calendarVisible}
+        selectedDate={selectedDate}
+        onClose={() => setCalendarVisible(false)}
+        onSelectDate={setSelectedDate}
       />
     </View>
   );

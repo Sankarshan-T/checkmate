@@ -17,6 +17,8 @@ import {
     Plus,
     ChartNoAxesColumn,
     Check,
+    CalendarDays,
+    ChevronDown,
 } from 'lucide-react-native';
 
 import type { Task } from '../storage/taskStorage';
@@ -26,6 +28,8 @@ type TaskCardProps = {
     onRequestAddTask: () => void;
     onToggleTask: (id: string) => void;
     onDeleteTask: (id: string) => void;
+    selectedDate: string;
+    onOpenCalendar: () => void;
 };
 
 export default function TaskCard({
@@ -33,10 +37,39 @@ export default function TaskCard({
     onRequestAddTask,
     onToggleTask,
     onDeleteTask,
+    selectedDate,
+    onOpenCalendar,
 }: TaskCardProps) {
     return (
         <View style={styles.card}>
-            <Text style={styles.heading}>Today:</Text>
+            <Pressable
+                style={styles.dateHeading}
+                onPress={onOpenCalendar}
+                accessibilityRole="button"
+                accessibilityLabel="Choose a date"
+            >
+                <CalendarDays size={22} color={colors.primary} />
+
+                <Text style={styles.heading}>
+                    {selectedDate === [
+                        new Date().getFullYear(),
+                        String(new Date().getMonth() + 1).padStart(2, '0'),
+                        String(new Date().getDate()).padStart(2, '0'),
+                    ].join('-')
+                        ? 'Today'
+                        : new Date(
+                            Number(selectedDate.slice(0, 4)),
+                            Number(selectedDate.slice(5, 7)) - 1,
+                            Number(selectedDate.slice(8, 10)),
+                        ).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                        })}
+                </Text>
+
+                <ChevronDown size={20} color={colors.muted} />
+            </Pressable>
 
             <View style={styles.taskCont}>
                 {tasks.length === 0 ? (
@@ -278,5 +311,12 @@ const styles = StyleSheet.create({
         flexDirection: 'column',
         flex: 1,
         padding: spacing.md
+    },
+    dateHeading: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        gap: spacing.sm,
+        paddingVertical: spacing.xs,
     },
 });
