@@ -11,7 +11,13 @@ import {
     View,
 } from 'react-native';
 
-import { Check, Plus, Library, Trash2 } from 'lucide-react-native';
+import {
+    CalendarDays,
+    Check,
+    Plus,
+    Library,
+    Trash2,
+} from 'lucide-react-native';
 
 import {
     colors,
@@ -100,7 +106,7 @@ export default function TaskLibraryModal({
                     </View>
 
                     <Text style={styles.description}>
-                        Save globals tasks here, then add them to whichever days you choose :)
+                        Save reusable tasks here and add them to a day whenever you need them.
                     </Text>
 
                     <View style={styles.inputRow}>
@@ -126,19 +132,17 @@ export default function TaskLibraryModal({
                     </View>
 
 
-                    <View style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        marginTop: spacing.md,
-                        padding: spacing.sm,
-                    }}>
-                        <Text style={styles.sectionTitle}>
-                            Reusable tasks: ({tasks.length})
-                        </Text>
-                        <Text style={styles.dateNote}>
-                            Adding tasks to: {formattedDate}
-                        </Text>
+                    <View style={styles.destinationBanner}>
+                        <CalendarDays size={20} color={colors.primary} />
+                        <View style={styles.destinationCopy}>
+                            <Text style={styles.destinationLabel}>Adding tasks to</Text>
+                            <Text style={styles.destinationDate}>{formattedDate}</Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.sectionHeading}>
+                        <Text style={styles.sectionTitle}>Reusable tasks</Text>
+                        <Text style={styles.taskCount}>{tasks.length}</Text>
                     </View>
 
                     <ScrollView
@@ -152,11 +156,10 @@ export default function TaskLibraryModal({
                             </Text>
                         ) : (
                             tasks.map(task => {
-                                const isAssigned =
-                                    assignedTaskIds.includes(task.id);
+                                const isAssigned = assignedTaskIds.includes(task.id);
 
                                 return (
-                                    <View style={styles.taskRow}>
+                                    <View style={styles.taskRow} key={task.id}>
                                         <View style={styles.taskInfo}>
                                             <Text style={styles.taskTitle}>{task.title}</Text>
                                         </View>
@@ -165,18 +168,18 @@ export default function TaskLibraryModal({
                                             style={[
                                                 styles.iconButton,
                                                 styles.assignIconButton,
-                                                assignedTaskIds.includes(task.id) && styles.assignedIconButton,
+                                                isAssigned && styles.assignedIconButton,
                                             ]}
                                             onPress={() => onAssignTask(task.id)}
-                                            disabled={assignedTaskIds.includes(task.id)}
+                                            disabled={isAssigned}
                                             accessibilityRole="button"
                                             accessibilityLabel={
-                                                assignedTaskIds.includes(task.id)
+                                                isAssigned
                                                     ? `${task.title} already added to this day`
                                                     : `Add ${task.title} to this day`
                                             }
                                         >
-                                            {assignedTaskIds.includes(task.id) ? (
+                                            {isAssigned ? (
                                                 <Check size={19} color={colors.primary} />
                                             ) : (
                                                 <Plus size={20} color={colors.primary} />
@@ -270,6 +273,49 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '700',
         color: colors.text,
+    },
+
+    destinationBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+        marginTop: spacing.md,
+        padding: spacing.md,
+        backgroundColor: colors.primaryLight,
+        borderRadius: radius.md,
+    },
+    destinationCopy: {
+        flex: 1,
+    },
+
+    destinationLabel: {
+        fontSize: 12,
+        color: colors.muted,
+    },
+    destinationDate: {
+        marginTop: 2,
+        fontSize: 15,
+        fontWeight: '700',
+        color: colors.primary,
+    },
+    sectionHeading: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+        marginTop: spacing.lg,
+        marginBottom: spacing.xs,
+    },
+    taskCount: {
+        minWidth: 24,
+        textAlign: 'center',
+        color: colors.muted,
+        fontSize: 13,
+        fontWeight: '600',
+        backgroundColor: colors.background,
+        borderRadius: radius.round,
+        overflow: 'hidden',
+        paddingHorizontal: spacing.xs,
+        paddingVertical: 2,
     },
     list: {
         flexGrow: 0,
@@ -366,10 +412,6 @@ const styles = StyleSheet.create({
     assignedText: {
         color: colors.primary,
         fontWeight: '600',
-    },
-    dateNote: {
-        fontSize: 13,
-        color: colors.muted,
     },
     closeButton: {
         backgroundColor: colors.primary,

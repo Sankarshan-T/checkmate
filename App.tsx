@@ -8,12 +8,12 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 
 import CalendarModal from './src/components/CalendarModal';
 import TaskCard from './src/components/TaskCard';
 import AddTaskModal from './src/components/AddTaskModal';
-import TaskLibraryModal from './src/components/TaskLibraryModal';
 
 import {
   colors,
@@ -35,6 +35,9 @@ import {
 import { ChartNoAxesColumn } from 'lucide-react-native';
 
 export default function App() {
+  const { width } = useWindowDimensions();
+  const isPhone = width < 500;
+
   const now = new Date();
   const hour = now.getHours();
 
@@ -72,7 +75,6 @@ export default function App() {
 
   const [addTaskVisible, setAddTaskVisible] = useState(false);
   const [calendarVisible, setCalendarVisible] = useState(false);
-  const [libraryVisible, setLibraryVisible] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -355,8 +357,8 @@ export default function App() {
       <View style={styles.decorativeCircleOne} />
       <View style={styles.decorativeCircleTwo} />
 
-      <View style={styles.header}>
-        <Text style={styles.logo}>checkmate</Text>
+      <View style={[styles.header, isPhone && styles.headerCompact]}>
+        <Text style={[styles.logo, isPhone && styles.logoCompact]}>checkmate</Text>
 
 
         <Pressable
@@ -383,20 +385,46 @@ export default function App() {
       <Animated.View
         style={[
           styles.greeting,
+          isPhone && styles.greetingCompact,
           {
             opacity: fadeAnim,
             transform: [{ translateY: slideAnim }],
           },
         ]}
       >
-        <View>
-          <Text style={styles.title}>{greeting}</Text>
-          <Text style={styles.subtitle}>
+        <View
+          style={[
+            styles.greetingTextContainer,
+            isPhone && styles.greetingTextContainerCompact,
+          ]}
+        >
+          <Text
+            style={[
+              styles.title,
+              isPhone && styles.titleCompact,
+            ]}
+          >
+            {greeting}
+          </Text>
+
+          <Text
+            style={[
+              styles.subtitle,
+              isPhone && styles.subtitleCompact,
+            ]}
+          >
             lets get things done :D
           </Text>
         </View>
 
-        <Text style={styles.date}>{date} :D</Text>
+        <Text
+          style={[
+            styles.date,
+            isPhone && styles.dateCompact,
+          ]}
+        >
+          {date} :D
+        </Text>
       </Animated.View>
 
       {storageError && (
@@ -427,18 +455,6 @@ export default function App() {
           </Text>
         )}
       </View>
-
-      <Pressable
-        style={({ pressed }) => [
-          styles.addButton,
-          pressed && styles.addButtonPressed,
-        ]}
-        onPress={() => setAddTaskVisible(true)}
-        accessibilityRole="button"
-        accessibilityLabel="Add a task for this date"
-      >
-        <Text style={styles.addButtonText}>+</Text>
-      </Pressable>
 
       <AddTaskModal
         visible={addTaskVisible}
@@ -480,40 +496,18 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
 
+  headerCompact: {
+    marginTop: spacing.lg,
+  },
+
   logo: {
     fontSize: 30,
     fontWeight: '700',
     color: colors.primary,
   },
 
-  greeting: {
-    marginTop: spacing.xl,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    paddingHorizontal: spacing.md,
-    alignSelf: 'center',
-    width: '100%',
-    maxWidth: 800,
-  },
-
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 4,
-  },
-
-  subtitle: {
-    fontSize: 17,
-    color: colors.subtle,
-  },
-
-  date: {
-    fontSize: 16,
-    color: colors.muted,
-    marginBottom: 4,
-    textAlign: 'right',
+  logoCompact: {
+    fontSize: 26,
   },
 
   decorativeCircleOne: {
@@ -540,7 +534,9 @@ const styles = StyleSheet.create({
 
   taskCardContainer: {
     flex: 1,
-    marginTop: spacing.xl,
+    minHeight: 0,
+    marginTop: spacing.lg,
+    paddingBottom: spacing.sm,
     alignItems: 'center',
   },
 
@@ -555,37 +551,6 @@ const styles = StyleSheet.create({
     color: '#B3261E',
     fontSize: 13,
   },
-
-  addButton: {
-    position: 'absolute',
-    right: 20,
-    bottom: 24,
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 5,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-  },
-
-  addButtonText: {
-    fontSize: 32,
-    fontWeight: '300',
-    color: colors.card,
-    lineHeight: 34,
-  },
-
-  addButtonPressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.9 }],
-  },
-
-
 
   reportsButton: {
     flexDirection: 'row',
@@ -610,5 +575,74 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: colors.primary,
+  },
+
+  greeting: {
+    marginTop: spacing.lg,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 800,
+    gap: spacing.md,
+  },
+
+  greetingCompact: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    marginTop: spacing.md,
+    gap: spacing.md,
+  },
+
+  greetingTextContainer: {
+    flex: 1,
+    minWidth: 0,
+  },
+
+  greetingTextContainerCompact: {
+    flex: 0,
+  },
+
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
+  },
+
+  titleCompact: {
+    fontSize: 23,
+    lineHeight: 29,
+  },
+
+  subtitle: {
+    fontSize: 17,
+    color: colors.subtle,
+  },
+
+  subtitleCompact: {
+    fontSize: 15,
+  },
+
+  date: {
+    fontSize: 16,
+    color: colors.muted,
+    marginBottom: 4,
+    textAlign: 'right',
+    flexShrink: 1,
+  },
+
+  dateCompact: {
+    alignSelf: 'flex-start',
+    fontSize: 13,
+    textAlign: 'left',
+    marginBottom: 0,
+    backgroundColor: colors.primaryLight,
+    borderRadius: radius.round,
+    overflow: 'hidden',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
   },
 });

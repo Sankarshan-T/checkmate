@@ -214,10 +214,10 @@ export default function TaskCard({
 
 const styles = StyleSheet.create({
     card: {
+        flex: 1,
         width: '92%',
         maxWidth: 500,
-        minHeight: 300,
-        justifyContent: 'space-between',
+        minHeight: 0,
         backgroundColor: colors.card,
         borderRadius: radius.xl,
         padding: spacing.lg,
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     },
 
     taskCont: {
-        flexGrow: 0,
+        flex: 1,
         flexShrink: 1,
         minHeight: 0,
     },
