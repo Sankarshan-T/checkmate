@@ -341,7 +341,6 @@ export async function removeGlobalTaskPermanently(
         removedHistory.push(historyEntry);
     }
 
-    // Save history before removing the task from the active library.
     await AsyncStorage.setItem(
         REMOVED_TASK_HISTORY_KEY,
         JSON.stringify(removedHistory),

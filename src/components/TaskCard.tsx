@@ -267,13 +267,6 @@ const styles = StyleSheet.create({
         borderColor: colors.primary,
     },
 
-    checkmark: {
-        color: colors.card,
-        fontSize: 16,
-        fontWeight: '700',
-        lineHeight: 19,
-    },
-
     taskText: {
         flex: 1,
         fontSize: 16,
@@ -307,12 +300,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         borderRadius: radius.md,
         marginLeft: spacing.xs,
-    },
-
-    deleteText: {
-        fontSize: 27,
-        color: '#C62828',
-        fontWeight: '400',
     },
 
     newTask: {

@@ -14,6 +14,7 @@ import {
 import CalendarModal from './src/components/CalendarModal';
 import TaskCard from './src/components/TaskCard';
 import AddTaskModal from './src/components/AddTaskModal';
+import ReportsScreen from './src/components/ReportsScreen';
 
 import {
   colors,
@@ -82,6 +83,7 @@ export default function App() {
 
   const [addTaskVisible, setAddTaskVisible] = useState(false);
   const [calendarVisible, setCalendarVisible] = useState(false);
+  const [showReports, setShowReports] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -466,6 +468,15 @@ export default function App() {
     );
   }
 
+  if (showReports) {
+    return (
+      <ReportsScreen
+        onBack={() => setShowReports(false)}
+        storageData={storageData}
+      />
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" />
@@ -483,9 +494,7 @@ export default function App() {
               isPhone && styles.reportsButtonCompact,
               pressed && styles.reportsButtonPressed,
             ]}
-            onPress={() => {
-              // todo: reports stuff
-            }}
+            onPress={() => setShowReports(true)}
             accessibilityRole="button"
           >
             <ChartNoAxesColumn
@@ -734,12 +743,6 @@ const styles = StyleSheet.create({
   reportsButtonCompact: {
     gap: spacing.xs,
     paddingHorizontal: spacing.sm,
-  },
-
-  tourText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.primary,
   },
 
   reportsButtonPressed: {

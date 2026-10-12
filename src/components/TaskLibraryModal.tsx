@@ -369,50 +369,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#FCEEEE',
     },
 
-    assignButton: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: spacing.sm,
-        paddingHorizontal: spacing.sm,
-        borderRadius: radius.md,
-        backgroundColor: colors.primaryLight,
-    },
-
-    removeButton: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: spacing.xs,
-        paddingVertical: spacing.sm,
-        paddingHorizontal: spacing.sm,
-        borderRadius: radius.md,
-        backgroundColor: '#FCEEEE',
-    },
-
-    removeText: {
-        color: '#C62828',
-        fontSize: 13,
-        fontWeight: '600',
-    },
-
-    removeHint: {
-        color: colors.muted,
-        fontSize: 11,
-    },
-    assignedButton: {
-        backgroundColor: '#F0F5F0',
-    },
-    assignText: {
-        color: colors.primary,
-        fontWeight: '700',
-    },
-    assignedText: {
-        color: colors.primary,
-        fontWeight: '600',
-    },
     closeButton: {
         backgroundColor: colors.primary,
         paddingVertical: spacing.md,
