@@ -227,10 +227,6 @@ export default function WelcomeScreen({
                         ]}
                     />
                 </View>
-
-                <Text style={styles.footerText}>
-                    Small steps add up 💚
-                </Text>
             </View>
         </View>
     )
@@ -532,12 +528,5 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '700',
-    },
-
-    footerText: {
-        marginTop: spacing.md,
-        textAlign: 'center',
-        fontSize: 12,
-        color: colors.subtle,
     },
 });

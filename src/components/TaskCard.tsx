@@ -59,7 +59,7 @@ export default function TaskCard({
     const { height: screenHeight } = useWindowDimensions();
 
     return (
-        <View style={[styles.card, { maxHeight: screenHeight * 0.6 }]}>
+        <View style={[styles.card, { maxHeight: screenHeight * 0.5 }]}>
             <Pressable
                 style={styles.dateHeading}
                 onPress={onOpenCalendar}
