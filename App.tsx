@@ -32,11 +32,18 @@ import {
   type TaskStorageData,
   removeGlobalTaskPermanently,
 } from './src/storage/taskStorage';
-import { ChartNoAxesColumn } from 'lucide-react-native';
+import { ChartNoAxesColumn, RotateCcw } from 'lucide-react-native';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import WelcomeScreen from './src/components/WelcomeScreen';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function App() {
   const { width } = useWindowDimensions();
   const isPhone = width < 500;
+
+  const [onboardingComplete, setOnboardingComplete] =
+    useState<boolean | null>(null);
 
   const now = new Date();
   const hour = now.getHours();
@@ -75,6 +82,34 @@ export default function App() {
 
   const [addTaskVisible, setAddTaskVisible] = useState(false);
   const [calendarVisible, setCalendarVisible] = useState(false);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const checkOnboarding = async () => {
+      try {
+        const value = await AsyncStorage.getItem(
+          '@checkmate/onboardingComplete',
+        );
+
+        if (isActive) {
+          setOnboardingComplete(value === 'true');
+        }
+      } catch (error) {
+        console.error('couldnt read onboarding status:', error);
+
+        if (isActive) {
+          setOnboardingComplete(false);
+        }
+      }
+    };
+
+    checkOnboarding();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   useEffect(() => {
     let isActive = true;
@@ -141,6 +176,45 @@ export default function App() {
     }));
 
     setAddTaskVisible(false);
+  };
+
+  const finishOnboarding = async () => {
+    try {
+      await AsyncStorage.setItem(
+        '@checkmate/onboardingComplete',
+        'true',
+      );
+
+      setOnboardingComplete(true);
+    } catch (error) {
+      console.error('coudnt save onboarding staus:', error);
+
+      Alert.alert(
+        'Woops!',
+        'We couldnt save your setup. Please try again.',
+      );
+    }
+  };
+
+  const replayOnboarding = () => {
+    Alert.alert(
+      'Replay the introduction?',
+      'Your tasks will stay saved. The onboarding screens will appear again.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Replay',
+          onPress: () => {
+            void AsyncStorage.removeItem('@checkmate/onboardingComplete')
+              .then(() => setOnboardingComplete(false))
+              .catch(error => {
+                console.error('Could not restart onboarding:', error);
+                Alert.alert('Could not replay onboarding', 'Please try again.');
+              });
+          },
+        },
+      ],
+    );
   };
 
   const addGlobalTask = (title: string) => {
@@ -350,8 +424,50 @@ export default function App() {
     .filter(assignment => assignment.date === selectedDate)
     .map(assignment => assignment.taskId);
 
+  if (onboardingComplete === null) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: colors.background,
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 30,
+            fontWeight: '800',
+            color: colors.primary,
+          }}
+        >
+          checkmate
+        </Text>
+
+        <Text
+          style={{
+            marginTop: spacing.sm,
+            color: colors.muted,
+          }}
+        >
+          Getting things done...
+        </Text>
+      </View>
+    );
+  }
+
+  if (!onboardingComplete) {
+    return (
+      <WelcomeScreen
+        onComplete={() => {
+          void finishOnboarding();
+        }}
+      />
+    );
+  }
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.decorativeCircleOne} />
@@ -360,26 +476,28 @@ export default function App() {
       <View style={[styles.header, isPhone && styles.headerCompact]}>
         <Text style={[styles.logo, isPhone && styles.logoCompact]}>checkmate</Text>
 
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.reportsButton,
-            pressed && styles.reportsButtonPressed,
-          ]}
-          onPress={() => {
-            // todo: reports stuff
-          }}
-          accessibilityRole="button"
-        >
-          <ChartNoAxesColumn
-            size={20}
-            color={colors.primary}
-            strokeWidth={3}
-          />
-          <Text style={styles.reportsText}>
-            Reports
-          </Text>
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.reportsButton,
+              isPhone && styles.reportsButtonCompact,
+              pressed && styles.reportsButtonPressed,
+            ]}
+            onPress={() => {
+              // todo: reports stuff
+            }}
+            accessibilityRole="button"
+          >
+            <ChartNoAxesColumn
+              size={20}
+              color={colors.primary}
+              strokeWidth={3}
+            />
+            <Text style={[styles.reportsText, isPhone && styles.reportsTextCompact]}>
+              Reports
+            </Text>
+          </Pressable>
+        </View>
       </View>
 
       <Animated.View
@@ -423,7 +541,7 @@ export default function App() {
             isPhone && styles.dateCompact,
           ]}
         >
-          {date} :D
+          {date}
         </Text>
       </Animated.View>
 
@@ -456,6 +574,19 @@ export default function App() {
         )}
       </View>
 
+      <Pressable
+        style={({ pressed }) => [
+          styles.tourButton,
+          pressed && styles.tourButtonPressed,
+        ]}
+        onPress={replayOnboarding}
+        accessibilityRole="button"
+        accessibilityLabel="Replay onboarding introduction"
+      >
+        <RotateCcw size={16} color={colors.primary} />
+        <Text style={styles.tourLabel}>Tour</Text>
+      </Pressable>
+
       <AddTaskModal
         visible={addTaskVisible}
         onClose={() => setAddTaskVisible(false)}
@@ -468,7 +599,7 @@ export default function App() {
         onClose={() => setCalendarVisible(false)}
         onSelectDate={setSelectedDate}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -498,6 +629,40 @@ const styles = StyleSheet.create({
 
   headerCompact: {
     marginTop: spacing.lg,
+  },
+
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+
+  tourButton: {
+    position: 'absolute',
+    right: spacing.lg,
+    bottom: 80,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.round,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    elevation: 3,
+  },
+
+  tourButtonPressed: {
+    backgroundColor: colors.primaryLight,
+    opacity: 0.9,
+  },
+
+  tourLabel: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: '600',
   },
 
   logo: {
@@ -566,6 +731,17 @@ const styles = StyleSheet.create({
     borderColor: '#D3E7D3',
   },
 
+  reportsButtonCompact: {
+    gap: spacing.xs,
+    paddingHorizontal: spacing.sm,
+  },
+
+  tourText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+
   reportsButtonPressed: {
     backgroundColor: '#D2E8D2',
     transform: [{ scale: 0.97 }],
@@ -575,6 +751,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: colors.primary,
+  },
+
+  reportsTextCompact: {
+    fontSize: 12,
   },
 
   greeting: {

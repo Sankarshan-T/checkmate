@@ -4,6 +4,7 @@ const LEGACY_TASKS_STORAGE_KEY = '@checkmate/tasks';
 const GLOBAL_TASKS_STORAGE_KEY = '@checkmate/globalTasks';
 const DAILY_TASKS_STORAGE_KEY = '@checkmate/dailyTasks';
 const REMOVED_TASK_HISTORY_KEY = '@checkmate/removedTaskHistory';
+const ONBOARDING_KEY = '@checkmate/onboardingComplete';
 
 export type GlobalTask = {
     id: string;
@@ -315,8 +316,6 @@ export async function removeGlobalTaskPermanently(
             ? dailyParsed.assignments.filter(isAssignment)
             : [];
 
-    // Preserve dates already recorded in completion history, plus any
-    // completed assignments that may not yet be in that history.
     const completionHistory = [
         ...new Set([
             ...task.completionHistory,
