@@ -7,6 +7,7 @@ import {
 } from 'lucide-react-native';
 import {
     Pressable,
+    ScrollView,
     StyleSheet,
     Text,
     View
@@ -183,7 +184,11 @@ export default function ReportsScreen({
                 </View>
             </View>
 
-            <View style={styles.content}>
+            <ScrollView
+                style={styles.content}
+                contentContainerStyle={styles.contentContainer}
+                showsVerticalScrollIndicator={false}
+            >
                 <View style={styles.monthSelector}>
                     <Pressable
                         style={styles.monthButton}
@@ -296,7 +301,7 @@ export default function ReportsScreen({
                     )}
                 </View>
 
-            </View>
+            </ScrollView>
         </SafeAreaView>
     )
 }
@@ -339,8 +344,15 @@ const styles = StyleSheet.create({
 
     content: {
         flex: 1,
+        minHeight: 0,
+        marginTop: spacing.lg,
+    },
+
+    contentContainer: {
+        flexGrow: 1,
         alignItems: 'center',
-        justifyContent: 'center',
+        gap: spacing.md,
+        paddingBottom: 120,
     },
 
     placeholder: {
@@ -357,7 +369,6 @@ const styles = StyleSheet.create({
         backgroundColor: colors.card,
         padding: spacing.sm,
         borderRadius: radius.lg,
-        marginBottom: spacing.lg,
     },
 
     monthButton: {
@@ -394,7 +405,6 @@ const styles = StyleSheet.create({
         backgroundColor: colors.card,
         borderRadius: radius.xl,
         padding: spacing.xl,
-        marginTop: spacing.md,
         elevation: 3,
     },
 
@@ -436,7 +446,6 @@ const styles = StyleSheet.create({
     breakdownSection: {
         width: '100%',
         maxWidth: 420,
-        marginTop: spacing.xl,
     },
 
     breakdownHeading: {
